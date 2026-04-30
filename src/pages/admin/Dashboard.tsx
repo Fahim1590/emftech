@@ -1,20 +1,29 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Briefcase, 
-  MessageSquare, 
-  BarChart3, 
-  Settings, 
+import {
+  Briefcase,
+  MessageSquare,
+  BarChart3,
+  Settings,
   LogOut,
   LayoutDashboard,
   FileText,
   Star,
   Settings2
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import SEO from '../../components/common/SEO';
 
 const AdminDashboard: React.FC = () => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/admin/login');
+  };
+
   const stats = [
     { label: 'Total Leads', value: '48', icon: <MessageSquare size={20} />, color: 'text-blue-500' },
     { label: 'Active Services', value: '10', icon: <Briefcase size={20} />, color: 'text-purple-500' },
@@ -53,7 +62,7 @@ const AdminDashboard: React.FC = () => {
             ))}
           </nav>
           <div className="p-4 border-t border-white/5">
-            <button className="flex items-center space-x-3 px-4 py-3 text-red-400 hover:bg-red-400/10 rounded-lg w-full transition-colors">
+            <button onClick={handleLogout} className="flex items-center space-x-3 px-4 py-3 text-red-400 hover:bg-red-400/10 rounded-lg w-full transition-colors">
               <LogOut size={20} />
               <span>Logout</span>
             </button>

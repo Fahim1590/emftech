@@ -1,15 +1,33 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Lock, Mail, ArrowRight } from 'lucide-react';
+import { Lock, Mail, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import SEO from '../../components/common/SEO';
 
 const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    navigate('/admin');
+    setLoading(true);
+    setError('');
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
+    const { error: authError } = await login(email, password);
+
+    if (authError) {
+      setError(authError);
+      setLoading(false);
+    } else {
+      navigate('/admin');
+    }
   };
 
   return (
@@ -31,14 +49,23 @@ const AdminLogin: React.FC = () => {
           <p className="text-gray-400 mt-2">Secure access to control panel</p>
         </div>
 
+        {error && (
+          <div className="flex items-center space-x-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-lg px-4 py-3 mb-6">
+            <AlertCircle size={16} className="flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
         <form className="space-y-6" onSubmit={handleLogin}>
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-300">Email Address</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
               <input
+                name="email"
                 type="email"
-                defaultValue="irobiul159@gmail.com"
+                required
+                autoComplete="email"
                 className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:border-primary transition-colors text-white"
                 placeholder="admin@emftech.online"
               />
@@ -48,12 +75,14 @@ const AdminLogin: React.FC = () => {
           <div className="space-y-2">
             <div className="flex justify-between">
               <label className="text-sm font-medium text-gray-300">Password</label>
-              <a href="#" className="text-xs text-primary hover:underline">Forgot?</a>
             </div>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
               <input
+                name="password"
                 type="password"
+                required
+                autoComplete="current-password"
                 className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:border-primary transition-colors text-white"
                 placeholder="••••••••"
               />
@@ -62,10 +91,17 @@ const AdminLogin: React.FC = () => {
 
           <button
             type="submit"
-            className="btn-primary w-full flex items-center justify-center"
+            disabled={loading}
+            className="btn-primary w-full flex items-center justify-center disabled:opacity-50"
           >
-            Login to Dashboard
-            <ArrowRight size={20} className="ml-2" />
+            {loading ? (
+              <Loader2 size={20} className="animate-spin" />
+            ) : (
+              <>
+                Login to Dashboard
+                <ArrowRight size={20} className="ml-2" />
+              </>
+            )}
           </button>
         </form>
 

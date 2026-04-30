@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
-import { MapPin, Download, Share2, Lock } from 'lucide-react';
+import { MapPin, Download, Share2, Lock, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import SEO from '../components/common/SEO';
 
@@ -10,11 +10,17 @@ const QRGeneratorPage: React.FC = () => {
   const [mapUrl, setMapUrl] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email && password) {
-      login(email);
+    setAuthLoading(true);
+    setAuthError('');
+    const { error } = await login(email, password);
+    if (error) {
+      setAuthError(error);
+      setAuthLoading(false);
     }
   };
 
@@ -54,7 +60,14 @@ const QRGeneratorPage: React.FC = () => {
           </div>
           <h2 className="text-2xl font-black text-center text-white uppercase tracking-tighter mb-2">Member Access</h2>
           <p className="text-gray-500 text-center text-sm mb-8 font-medium">Please sign in to use the QR Generator.</p>
-          
+
+          {authError && (
+            <div className="flex items-center space-x-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-lg px-4 py-3 mb-4">
+              <AlertCircle size={16} className="flex-shrink-0" />
+              <span>{authError}</span>
+            </div>
+          )}
+
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Email Address</label>
@@ -78,7 +91,9 @@ const QRGeneratorPage: React.FC = () => {
                 required
               />
             </div>
-            <button type="submit" className="btn-primary w-full text-xs font-black tracking-[0.3em]">AUTHORIZE SESSION</button>
+            <button type="submit" disabled={authLoading} className="btn-primary w-full text-xs font-black tracking-[0.3em] flex items-center justify-center disabled:opacity-50">
+              {authLoading ? <Loader2 size={16} className="animate-spin" /> : 'AUTHORIZE SESSION'}
+            </button>
           </form>
           <p className="mt-8 text-center text-[10px] text-gray-600 font-bold uppercase tracking-widest">Restricted Feature • EMFTECH Secure Protocol</p>
         </motion.div>
